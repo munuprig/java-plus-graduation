@@ -3,6 +3,8 @@ package ru.practicum.ewm.comment.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.user.model.User;
 
@@ -10,7 +12,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "event_comments", schema = "public")
-@Data
+@Setter
+@Getter
 public class Comment {
 
     @Id

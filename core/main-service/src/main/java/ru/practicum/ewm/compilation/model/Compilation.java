@@ -2,12 +2,15 @@ package ru.practicum.ewm.compilation.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import ru.practicum.ewm.event.model.Event;
 
 import java.util.Set;
 
 @Entity
-@Data
+@Setter
+@Getter
 @Table(name = "compilations", schema = "public")
 public class Compilation {
 

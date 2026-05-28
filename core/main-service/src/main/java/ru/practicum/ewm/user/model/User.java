@@ -2,10 +2,13 @@ package ru.practicum.ewm.user.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "users", schema = "public")
-@Data
+@Setter
+@Getter
 public class User {
 
     @Id

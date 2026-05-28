@@ -26,7 +26,7 @@ public class PublicCategoryServiceImpl implements PublicCategoryService {
         List<CategoryDto> categoriesDto = categories.stream()
                 .map(CategoryMapper::mapToCategoryDto)
                 .collect(Collectors.toList());
-        log.info("получен список categoryDtoResp from = " + from + " size " + size);
+        log.info("получен список categoryDtoResp from = {} size {}", from, size);
         return categoriesDto;
     }
 
