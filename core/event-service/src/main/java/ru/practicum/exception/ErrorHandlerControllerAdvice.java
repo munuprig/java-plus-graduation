@@ -1,17 +1,12 @@
 package ru.practicum.exception;
 
-
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,48 +14,25 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class ErrorHandlerControllerAdvice extends BaseErrorHandler {
 
-
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ValidationErrorResponse onConstraintValidationException(
-            ConstraintViolationException e
-    ) {
-        final List<ValidationViolation> validationViolations = e.getConstraintViolations().stream()
-                .map(
-                        violation -> {
-                            log.error("ConstraintViolationException: {} : {}", violation.getPropertyPath().toString(), violation.getMessage());
-                            return new ValidationViolation(
-                                    violation.getPropertyPath().toString(),
-                                    violation.getMessage()
-                            );
-                        }
-                )
+    public ValidationErrorResponse onConstraintValidationException(ConstraintViolationException e) {
+
+        List<ValidationViolation> violations = e.getConstraintViolations()
+                .stream()
+                .map(v -> {
+                    log.error("Constraint violation: {} - {}", v.getPropertyPath(), v.getMessage());
+                    return new ValidationViolation(v.getPropertyPath().toString(), v.getMessage());
+                })
                 .collect(Collectors.toList());
 
-        return new ValidationErrorResponse(validationViolations);
+        return new ValidationErrorResponse(violations);
     }
 
-    @ExceptionHandler({DataIntegrityViolationException.class})
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError onDataIntegrityViolationException(final DataIntegrityViolationException e) {
-        log.error("DataIntegrityViolationException - 409: {}", e.getMessage(), e);
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTrace = sw.toString();
-        return new ApiError("CONFLICT", "Integrity constraint has been violated", stackTrace, LocalDateTime.now().toString());
+    public ApiError onDataIntegrity(org.springframework.dao.DataIntegrityViolationException e) {
+        log.error("409 DataIntegrityViolation: {}", e.getMessage(), e);
+        return buildError(HttpStatus.CONFLICT, "CONFLICT", e);
     }
-
-    @ExceptionHandler(Throwable.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleAnyException(final Throwable e) {
-        log.error("Error:500; {}", e.getMessage(), e);
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTrace = sw.toString();
-
-        return new ApiError("INTERNAL_SERVER_ERROR", "internal server error", stackTrace, LocalDateTime.now().toString());
-    }
-
 }

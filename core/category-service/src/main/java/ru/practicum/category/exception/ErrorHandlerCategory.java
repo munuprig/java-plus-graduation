@@ -1,7 +1,6 @@
 package ru.practicum.category.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -12,18 +11,17 @@ import ru.practicum.exception.BaseErrorHandler;
 @RestControllerAdvice
 public class ErrorHandlerCategory extends BaseErrorHandler {
 
-    @ExceptionHandler({CategoryNotFoundException.class})
+    @ExceptionHandler(CategoryNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse notFoundException(final Exception e) {
-        log.error("{} - {}", HttpStatus.NOT_FOUND, e.getMessage(), e);
-        return new ErrorResponse(e.getMessage());
+    public ApiError notFound(CategoryNotFoundException e) {
+        log.error("404 CategoryNotFound: {}", e.getMessage(), e);
+        return buildError(HttpStatus.NOT_FOUND, "NOT_FOUND", e);
     }
 
-
-    @ExceptionHandler({DataIntegrityViolationException.class})
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse onDataIntegrityViolationException(final Exception e) {
-        log.error("{} - {}", HttpStatus.CONFLICT, e.getMessage(), e);
-        return new ErrorResponse(e.getMessage());
+    public ApiError conflict(org.springframework.dao.DataIntegrityViolationException e) {
+        log.error("409 DataIntegrityViolation: {}", e.getMessage(), e);
+        return buildError(HttpStatus.CONFLICT, "CONFLICT", e);
     }
 }
