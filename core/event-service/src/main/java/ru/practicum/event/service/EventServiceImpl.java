@@ -2,12 +2,14 @@ package ru.practicum.event.service;
 
 
 import feign.FeignException;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.ParamDto;
+import ru.practicum.ViewStats;
 import ru.practicum.client.RestStatClient;
 import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.dto.*;
@@ -35,6 +37,7 @@ import static ru.practicum.dto.Constants.FORMAT_DATETIME;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
@@ -47,6 +50,7 @@ public class EventServiceImpl implements EventService {
     private final CommentRepository commentRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<EventShortDto> getAllEvents(ReqParam reqParam) {
         Pageable pageable = PageRequest.of(reqParam.getFrom(), reqParam.getSize());
 
@@ -98,6 +102,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<EventFullDto> getAllEvents(AdminEventParams params) {
         Pageable pageable = PageRequest.of(params.getFrom(), params.getSize());
 
@@ -121,6 +126,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public EventFullDto publicGetEvent(long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(Event.class, "Событие c ID - " + id + ", не найдено."));
@@ -306,10 +312,9 @@ public class EventServiceImpl implements EventService {
             }
         }
         ParamDto paramDto = new ParamDto(earlyPublishDate, LocalDateTime.now(), gettingUris, true);
-        statClient.getStat(paramDto)
-                .stream()
-                .peek(viewStats -> eventDtoMap.get(viewStats.getUri()).setViews(viewStats.getHits()));
-        return eventDtoMap.values().stream().toList();
+        List<ViewStats> viewStats = statClient.getStat(paramDto);
+        viewStats.forEach(viewStat -> eventDtoMap.get(viewStat.getUri()).setViews(viewStat.getHits()));
+        return eventDtos;
     }
 
     private EventFullDto addViews(EventFullDto dto) {

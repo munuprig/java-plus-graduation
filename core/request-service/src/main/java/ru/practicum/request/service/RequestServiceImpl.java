@@ -8,11 +8,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.*;
+import ru.practicum.exception.*;
+import ru.practicum.feign.*;
 import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.request.exception.*;
 import ru.practicum.request.feign.event.EventFeign;
-import ru.practicum.request.feign.user.UserFeign;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.repository.RequestRepository;
@@ -45,7 +46,6 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
-        UserShortDto user = findUser(userId);
         if (findEventByIdAndUserId(eventId, userId).isPresent()) {
             throw new InitiatorRequestException("Пользователь с ID - " + userId + ", является создателем события с ID - " + eventId);
         }
