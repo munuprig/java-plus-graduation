@@ -17,9 +17,9 @@ import ru.practicum.dto.EventState;
 import ru.practicum.dto.UserShortDto;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
-import ru.practicum.exception.NotFoundException;
-import ru.practicum.exception.ConflictException;
-import ru.practicum.exception.BadRequestException;
+import ru.practicum.exception.EntityNotFoundException;
+import ru.practicum.exception.InitiatorRequestException;
+import ru.practicum.exception.ValidationException;
 import ru.practicum.feign.RequestFeign;
 import ru.practicum.feign.UserFeign;
 
@@ -47,10 +47,10 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto privateAdd(Long userId, Long eventId, InputCommentDto inputCommentDto) {
         Event event = findEvent(eventId);
         if (event.getInitiatorId().equals(userId)) {
-            throw new BadRequestException(Comment.class, " Нельзя оставлять комментарии к своему событию.");
+            throw new ValidationException(Comment.class, " Нельзя оставлять комментарии к своему событию.");
         }
         if (requestFeign.findByRequesterIdAndEventId(userId, eventId).isEmpty()) {
-            throw new BadRequestException(Comment.class, " Пользователь с ID - " + userId + ", не заявился на событие с ID - " + eventId + ".");
+            throw new ValidationException(Comment.class, " Пользователь с ID - " + userId + ", не заявился на событие с ID - " + eventId + ".");
         }
         UserShortDto author = findUser(userId);
 
@@ -70,7 +70,7 @@ public class CommentServiceImpl implements CommentService {
         UserShortDto author = findUser(userId);
         Comment comment = findComment(commentId);
         if (!comment.getAuthorId().equals(userId)) {
-            throw new ConflictException(" Нельзя удалить комментарий другого пользователя.");
+            throw new InitiatorRequestException(" Нельзя удалить комментарий другого пользователя.");
         }
         commentRepository.deleteById(commentId);
     }
@@ -85,7 +85,7 @@ public class CommentServiceImpl implements CommentService {
         UserShortDto author = findUser(userId);
         Comment comment = findComment(commentId);
         if (!comment.getAuthorId().equals(userId)) {
-            throw new ConflictException(" Нельзя редактировать комментарий другого пользователя.");
+            throw new InitiatorRequestException(" Нельзя редактировать комментарий другого пользователя.");
         }
         comment.setText(updateCommentDto.getText());
         comment = commentRepository.save(comment);
@@ -157,7 +157,7 @@ public class CommentServiceImpl implements CommentService {
 
     private Event findEvent(Long eventId) {
         Event event = eventRepository.findByIdAndState(eventId, EventState.PUBLISHED)
-                .orElseThrow(() -> new NotFoundException(
+                .orElseThrow(() -> new EntityNotFoundException(
                         Event.class, "Событие c ID - " + eventId + ", не найдено или ещё не опубликовано"));
         log.info("Найдено событие: {}", event);
         return event;
@@ -169,13 +169,13 @@ public class CommentServiceImpl implements CommentService {
             log.info("Результат поиска user-service: {}", dto);
             return dto;
         } catch (FeignException e) {
-            throw new NotFoundException(UserShortDto.class, "Пользователь c ID - " + userId + ", не найден.");
+            throw new EntityNotFoundException(UserShortDto.class, "Пользователь c ID - " + userId + ", не найден.");
         }
     }
 
     private Comment findComment(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new NotFoundException(Comment.class, "Комментарий c ID - " + commentId + ", не найден."));
+                .orElseThrow(() -> new EntityNotFoundException(Comment.class, "Комментарий c ID - " + commentId + ", не найден."));
         log.info("Найден коментарий: {}", comment);
         return comment;
     }
@@ -187,7 +187,7 @@ public class CommentServiceImpl implements CommentService {
             users = userFeign.findUserShortDtoById(usersId);
             log.info("Результат поиска user-service: {}", users);
         } catch (FeignException e) {
-            throw new NotFoundException(UserShortDto.class, "Пользователи не найдены.");
+            throw new EntityNotFoundException(UserShortDto.class, "Пользователи не найдены.");
         }
         List<CommentDto> result = new ArrayList<>();
         for (Comment comment : comments) {

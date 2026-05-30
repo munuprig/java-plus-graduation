@@ -1,9 +1,6 @@
 package ru.practicum.request.exception;
 
-import ru.practicum.exception.NotFoundException;
-
-public class EntityNotFoundException extends NotFoundException {
-
+public class EntityNotFoundException extends RuntimeException {
     public EntityNotFoundException(String message) {
         super(message);
     }

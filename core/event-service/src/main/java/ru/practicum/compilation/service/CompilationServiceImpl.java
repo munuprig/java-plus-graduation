@@ -1,5 +1,8 @@
 package ru.practicum.compilation.service;
 
+
+
+
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +21,7 @@ import ru.practicum.dto.UserShortDto;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.repository.EventRepository;
-import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.EntityNotFoundException;
 import ru.practicum.feign.CategoryFeign;
 import ru.practicum.feign.UserFeign;
 
@@ -49,7 +52,7 @@ public class CompilationServiceImpl implements CompilationService {
         }
         List<Event> events = eventRepository.findAllByIdIsIn(newCompilationDto.getEvents());
         if (events.isEmpty()) {
-            throw new NotFoundException(Event.class, "Указанные события не найдены");
+            throw new EntityNotFoundException(Event.class, "Указанные события не найдены");
         }
         newCompilation.setEvents(events);
         newCompilation = compilationRepository.save(newCompilation);
@@ -63,7 +66,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public void delete(Long id) {
         compilationRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(Compilation.class, "(Подборка) c ID = " + id + ", не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException(Compilation.class, "(Подборка) c ID = " + id + ", не найдена"));
 
         compilationRepository.deleteById(id);
     }
@@ -71,7 +74,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public CompilationDto update(Long id, UpdateCompilationRequest updateCompilationRequest) {
         Compilation compilation = compilationRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(Compilation.class, "(Подборка) c ID = " + id + ", не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException(Compilation.class, "(Подборка) c ID = " + id + ", не найдена"));
         if (updateCompilationRequest.getTitle() != null) {
             compilation.setTitle(updateCompilationRequest.getTitle());
         }
@@ -81,7 +84,7 @@ public class CompilationServiceImpl implements CompilationService {
         if (updateCompilationRequest.getEvents() != null && !updateCompilationRequest.getEvents().isEmpty()) {
             List<Event> events = eventRepository.findAllByIdIsIn(updateCompilationRequest.getEvents());
             if (events.isEmpty()) {
-                throw new NotFoundException(Event.class, "Указанные события не найдены");
+                throw new EntityNotFoundException(Event.class, "Указанные события не найдены");
             }
             compilation.setEvents(events);
         }
@@ -116,7 +119,7 @@ public class CompilationServiceImpl implements CompilationService {
         }
         List<Event> events = eventRepository.findAllByIdIsIn(eventsId);
         if (events.isEmpty()) {
-            throw new NotFoundException(Event.class, "Указанные события не найдены");
+            throw new EntityNotFoundException(Event.class, "Указанные события не найдены");
         }
 
         Map<Long, CompilationDto> compilationDtoMap = compilationMapper.toCompilationDtos(compilations)
@@ -138,7 +141,7 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto getCompilationById(Long compId) {
 
         Compilation compilation = compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFoundException(Compilation.class, "Подборка событий не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException(Compilation.class, "Подборка событий не найдена"));
 
         if (compilation.getEvents().isEmpty()) {
             return compilationMapper.toCompilationDto(compilation, new ArrayList<>());
@@ -147,7 +150,7 @@ public class CompilationServiceImpl implements CompilationService {
         Set<Long> eventsId = compilation.getEvents().stream().map(Event::getId).collect(Collectors.toSet());
         List<Event> events = eventRepository.findAllByIdIsIn(eventsId);
         if (events.isEmpty()) {
-            throw new NotFoundException(Event.class, "Указанные события не найдены");
+            throw new EntityNotFoundException(Event.class, "Указанные события не найдены");
         }
         List<EventShortDto> eventDtos = getEventShortDtos(events);
         return compilationMapper.toCompilationDto(compilation, eventDtos);
@@ -170,7 +173,7 @@ public class CompilationServiceImpl implements CompilationService {
             categories = categoryFeign.getCategoryById(categoriesId);
             log.info("Получаем категории из category-service: {}", categories);
         } catch (FeignException e) {
-            throw new NotFoundException(CategoryDto.class, e.getMessage());
+            throw new EntityNotFoundException(CategoryDto.class, e.getMessage());
         }
         for (Event event : events) {
             dtoMap.get(event.getId()).setCategory(categories.get(event.getCategoryId()));
@@ -188,7 +191,7 @@ public class CompilationServiceImpl implements CompilationService {
             users = userFeign.findUserShortDtoById(usersId);
             log.info("Получаем пользователей из user-service: {}", users);
         } catch (FeignException e) {
-            throw new NotFoundException(UserShortDto.class, e.getMessage());
+            throw new EntityNotFoundException(UserShortDto.class, e.getMessage());
         }
         for (Event event : events) {
             dtoMap.get(event.getId()).setInitiator(users.get(event.getInitiatorId()));
