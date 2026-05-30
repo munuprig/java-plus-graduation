@@ -18,10 +18,10 @@ import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.*;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.event.repository.LocationRepository;
+import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConditionNotMetException;
-import ru.practicum.exception.EntityNotFoundException;
-import ru.practicum.exception.InitiatorRequestException;
-import ru.practicum.exception.ValidationException;
+import ru.practicum.exception.ConflictException;
+import ru.practicum.exception.NotFoundException;
 import ru.practicum.feign.CategoryFeign;
 import ru.practicum.feign.RequestFeign;
 import ru.practicum.feign.UserFeign;
@@ -70,7 +70,7 @@ public class EventServiceImpl implements EventService {
         );
         log.info("Найденные события: {}", events);
         if (events.isEmpty()) {
-            throw new ValidationException(ReqParam.class, " События не найдены");
+            throw new BadRequestException(ReqParam.class, " События не найдены");
         }
 
         List<EventFullDto> eventFullDtos = addCategoriesDto(eventMapper.toEventFullDtos(events), events);
@@ -129,9 +129,9 @@ public class EventServiceImpl implements EventService {
     @Transactional(readOnly = true)
     public EventFullDto publicGetEvent(long id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(Event.class, "Событие c ID - " + id + ", не найдено."));
+                .orElseThrow(() -> new NotFoundException(Event.class, "Событие c ID - " + id + ", не найдено."));
         if (event.getState() != EventState.PUBLISHED) {
-            throw new EntityNotFoundException(Event.class, " Событие c ID - " + id + ", ещё не опубликовано.");
+            throw new NotFoundException(Event.class, " Событие c ID - " + id + ", ещё не опубликовано.");
         }
 
         CategoryDto category = getCategoryDto(event.getCategoryId());
@@ -147,7 +147,7 @@ public class EventServiceImpl implements EventService {
         LocalDateTime eventDate = LocalDateTime.parse(newEventDto.getEventDate(),
                 DateTimeFormatter.ofPattern(FORMAT_DATETIME));
         if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ValidationException(NewEventDto.class, "До начала события осталось меньше двух часов");
+            throw new BadRequestException(NewEventDto.class, "До начала события осталось меньше двух часов");
         }
 
         UserShortDto initiator = getUserShortDto(userId);
@@ -179,7 +179,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto update(Long eventId, UpdateEventAdminRequest updateEventAdminRequest) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException(Event.class, " c ID = " + eventId + ", не найдено."));
+                .orElseThrow(() -> new NotFoundException(Event.class, " c ID = " + eventId + ", не найдено."));
 
         if (updateEventAdminRequest.getEventDate() != null) {
             if ((event.getPublishedOn() != null) && updateEventAdminRequest.getEventDate().isAfter(event.getPublishedOn().minusHours(1))) {
@@ -222,7 +222,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto findUserEventById(Long userId, Long eventId) {
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new EntityNotFoundException(Event.class, "Событие не найдено"));
+                .orElseThrow(() -> new NotFoundException(Event.class, "Событие не найдено"));
         CategoryDto category = getCategoryDto(event.getCategoryId());
         UserShortDto user = getUserShortDto(userId);
         EventFullDto result = eventMapper.toEventFullDto(event, user, category);
@@ -246,7 +246,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto findEventById(Long eventId) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException(Event.class, "Событие c ID - " + eventId + ", не найдено."));
+                .orElseThrow(() -> new NotFoundException(Event.class, "Событие c ID - " + eventId + ", не найдено."));
 
         CategoryDto category = getCategoryDto(event.getCategoryId());
         UserShortDto userShortDto = getUserShortDto(event.getInitiatorId());
@@ -259,14 +259,14 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest updateRequest) {
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new EntityNotFoundException(Event.class, "Событие не найдено"));
+                .orElseThrow(() -> new NotFoundException(Event.class, "Событие не найдено"));
         if (event.getState() == EventState.PUBLISHED) {
-            throw new InitiatorRequestException("Нельзя отредактировать опубликованное событие");
+            throw new ConflictException("Нельзя отредактировать опубликованное событие");
         }
 
         if (updateRequest.getEventDate() != null) {
             if (updateRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-                throw new ValidationException(NewEventDto.class, "До начала события осталось меньше двух часов");
+                throw new BadRequestException(NewEventDto.class, "До начала события осталось меньше двух часов");
             }
         }
         if (updateRequest.getStateAction() != null) {
@@ -372,7 +372,7 @@ public class EventServiceImpl implements EventService {
             requests = requestFeign.findAllByEventIdInAndStatus(eventIds, RequestStatus.CONFIRMED);
             log.info("Получаем запросы из request-service: {}", requests);
         } catch (FeignException e) {
-            throw new jakarta.persistence.EntityNotFoundException("Ошибка при обращении в request-service");
+            throw new NotFoundException("Ошибка при обращении в request-service");
         }
         Map<Long, Long> requestsMap = requests.stream()
                 .collect(Collectors.groupingBy(ParticipationRequestDto::getEvent, Collectors.counting()));
@@ -386,7 +386,7 @@ public class EventServiceImpl implements EventService {
                     requestFeign.findCountByEventIdInAndStatus(eventDto.getId(), RequestStatus.CONFIRMED)
             );
         } catch (FeignException e) {
-            throw new jakarta.persistence.EntityNotFoundException("Ошибка при обращении в request-service");
+            throw new NotFoundException("Ошибка при обращении в request-service");
         }
         return eventDto;
     }
@@ -397,7 +397,7 @@ public class EventServiceImpl implements EventService {
             log.info("Получаем категорию из category-service: {}", category);
             return category;
         } catch (FeignException e) {
-            throw new EntityNotFoundException(CategoryDto.class, e.getMessage());
+            throw new NotFoundException(CategoryDto.class, e.getMessage());
         }
     }
 
@@ -410,7 +410,7 @@ public class EventServiceImpl implements EventService {
             categories = categoryFeign.getCategoryById(categoriesId);
             log.info("Получаем категории из category-service: {}", categories);
         } catch (FeignException e) {
-            throw new EntityNotFoundException(CategoryDto.class, e.getMessage());
+            throw new NotFoundException(CategoryDto.class, e.getMessage());
         }
         for (Event event : events) {
             dtoMap.get(event.getId()).setCategory(categories.get(event.getCategoryId()));
@@ -425,7 +425,7 @@ public class EventServiceImpl implements EventService {
             log.info("Получаем пользователя из user-service: {}", user);
             return user;
         } catch (FeignException e) {
-            throw new EntityNotFoundException(UserShortDto.class, e.getMessage());
+            throw new NotFoundException(UserShortDto.class, e.getMessage());
         }
     }
 
@@ -438,7 +438,7 @@ public class EventServiceImpl implements EventService {
             users = userFeign.findUserShortDtoById(usersId);
             log.info("Получаем пользователей из user-service: {}", users);
         } catch (FeignException e) {
-            throw new EntityNotFoundException(UserShortDto.class, e.getMessage());
+            throw new NotFoundException(UserShortDto.class, e.getMessage());
         }
         for (Event event : events) {
             dtoMap.get(event.getId()).setInitiator(users.get(event.getInitiatorId()));
