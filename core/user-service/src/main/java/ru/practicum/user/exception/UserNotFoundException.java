@@ -1,6 +1,8 @@
 package ru.practicum.user.exception;
 
-public class UserNotFoundException extends RuntimeException {
+import ru.practicum.exception.NotFoundException;
+
+public class UserNotFoundException extends NotFoundException {
     public UserNotFoundException(String message) {
         super(message);
     }

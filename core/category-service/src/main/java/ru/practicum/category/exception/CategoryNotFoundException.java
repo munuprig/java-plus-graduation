@@ -1,6 +1,8 @@
 package ru.practicum.category.exception;
 
-public class CategoryNotFoundException extends RuntimeException {
+import ru.practicum.exception.NotFoundException;
+
+public class CategoryNotFoundException extends NotFoundException {
     public CategoryNotFoundException(String message) {
         super(message);
     }

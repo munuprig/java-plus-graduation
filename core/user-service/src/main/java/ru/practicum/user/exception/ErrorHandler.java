@@ -7,19 +7,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.exception.BaseErrorHandler;
+import ru.practicum.exception.ErrorResponse;
 
 @Slf4j
 @RestControllerAdvice
-public class ErrorHandler {
-    public record ErrorResponse(String message) {
-    }
-
-    @ExceptionHandler({UserNotFoundException.class})
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse notFoundException(final Exception e) {
-        log.error("{} - {}", HttpStatus.NOT_FOUND, e.getMessage(), e);
-        return new ErrorResponse(e.getMessage());
-    }
+public class ErrorHandler extends BaseErrorHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({

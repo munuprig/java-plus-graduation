@@ -19,8 +19,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
-public class ErrorHandlerControllerAdvice {
-
+public class ErrorHandlerControllerAdvice{
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -144,8 +143,5 @@ public class ErrorHandlerControllerAdvice {
         e.printStackTrace(pw);
         String stackTrace = sw.toString();
         return new ApiError("CONFLICT", "event is not published", stackTrace, LocalDateTime.now().toString());
-    }
-
-    public record ApiError(String status, String reason, String message, String timestamp) {
     }
 }
