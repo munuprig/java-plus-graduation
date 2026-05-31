@@ -76,7 +76,6 @@ public class GlobalExceptionHandler {
     // 400 - business bad request
     // =========================
     @ExceptionHandler({
-            ru.practicum.exception.ValidationException.class,
             ValidationException.class,
             IllegalArgumentException.class
     })
