@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.UserDto;
 import ru.practicum.dto.UserShortDto;
-import ru.practicum.user.exception.UserNotFoundException;
+import ru.practicum.exception.UserNotFoundException;
 import ru.practicum.user.model.User;
 import ru.practicum.user.model.UserMapper;
 import ru.practicum.user.repository.UserRepository;

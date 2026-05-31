@@ -76,7 +76,6 @@ public class GlobalExceptionHandler {
     // 400 - business bad request
     // =========================
     @ExceptionHandler({
-            BadRequestException.class,
             ValidationException.class,
             IllegalArgumentException.class
     })
@@ -95,7 +94,6 @@ public class GlobalExceptionHandler {
     // 404
     // =========================
     @ExceptionHandler({
-            NotFoundException.class,
             EntityNotFoundException.class,
             OperationUnnecessaryException.class
     })
