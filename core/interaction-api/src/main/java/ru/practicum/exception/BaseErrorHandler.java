@@ -1,6 +1,7 @@
 package ru.practicum.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -34,6 +35,17 @@ public class BaseErrorHandler {
     })
     public ErrorResponse handleIBadRequestException(final Exception e) {
         log.error("{} - {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler({DataIntegrityViolationException.class,
+            InitiatorRequestException.class,
+            ParticipantLimitException.class,
+            RepeatUserRequestorException.class,
+            NotPublishEventException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleConflictException(final Exception e) {
+        log.error("{} - {}", HttpStatus.CONFLICT, e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
 }

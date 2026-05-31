@@ -9,6 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.*;
+import ru.practicum.exception.InitiatorRequestException;
+import ru.practicum.exception.NotPublishEventException;
+import ru.practicum.exception.ParticipantLimitException;
 import ru.practicum.feign.UserFeign;
 import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.request.dto.EventRequestStatusUpdateResult;
@@ -52,7 +55,7 @@ public class RequestServiceImpl implements RequestService {
             throw new InitiatorRequestException("Пользователь с ID - " + userId + ", является создателем события с ID - " + eventId);
         }
         if (requestRepository.findByRequesterIdAndEventId(userId, eventId).isPresent()) {
-            throw new RepeatUserRequestorException("Пользователь с ID - " + userId + ", уже заявился на событие с ID - " + eventId + ".");
+            throw new ru.practicum.exception.RepeatUserRequestorException("Пользователь с ID - " + userId + ", уже заявился на событие с ID - " + eventId + ".");
         }
         EventFullDto event = findEventById(eventId);
         if (!event.getState().equals(EventState.PUBLISHED.name())) {
