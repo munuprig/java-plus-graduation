@@ -75,7 +75,6 @@ public class GlobalExceptionHandler {
     // 400 - business bad request
     // =========================
     @ExceptionHandler({
-            ValidationException.class,
             IllegalArgumentException.class
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
