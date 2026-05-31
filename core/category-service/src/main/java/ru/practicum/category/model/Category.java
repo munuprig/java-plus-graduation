@@ -9,7 +9,6 @@ import lombok.ToString;
 @Table(name = "categories")
 @Getter
 @Setter
-@ToString
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
