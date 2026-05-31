@@ -42,6 +42,7 @@ public class ErrorHandlerControllerAdvice{
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class,
+            BadRequestException.class,
             MissingServletRequestParameterException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse onMethodArgumentNotValidException(
