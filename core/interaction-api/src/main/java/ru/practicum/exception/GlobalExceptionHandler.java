@@ -139,7 +139,6 @@ public class GlobalExceptionHandler {
     // =========================
     @ExceptionHandler({
             ConditionNotMetException.class,
-            DataIntegrityViolationException.class,
             NotPublishEventException.class,
             InitiatorRequestException.class,
             ParticipantLimitException.class,
