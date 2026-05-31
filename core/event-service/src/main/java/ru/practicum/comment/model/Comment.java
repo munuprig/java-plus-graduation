@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @Table(name = "comments")
 @Getter
 @Setter
-@ToString (exclude = "event")
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
