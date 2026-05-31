@@ -37,5 +37,5 @@
 
 ### Спецификации внешнего API можно найти по следующим ссылкам:
 
-1. [Спецификация основного сервиса](https://github.com/educational1234/java-plus-graduation/blob/microservices/ewm-main-service-spec.json)
-2. [Спецификация сервиса статистики](https://github.com/educational1234/java-plus-graduation/blob/microservices/ewm-stats-service-spec.json)
+1. [Спецификация основного сервиса](https://github.com/munuprig/java-plus-graduation/blob/main/ewm-main-service-spec.json)
+2. [Спецификация сервиса статистики](https://github.com/munuprig/java-plus-graduation/blob/main/ewm-stats-service-spec.json)
