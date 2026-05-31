@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.comment.dto.CommentDto;
 import ru.practicum.comment.dto.InputCommentDto;
 import ru.practicum.comment.dto.UpdateCommentDto;
@@ -44,6 +45,7 @@ public class CommentServiceImpl implements CommentService {
 
 
     @Override
+    @Transactional
     public CommentDto privateAdd(Long userId, Long eventId, InputCommentDto inputCommentDto) {
         Event event = findEvent(eventId);
         if (event.getInitiatorId().equals(userId)) {
@@ -81,6 +83,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentDto privateUpdate(Long userId, Long commentId, UpdateCommentDto updateCommentDto) {
         UserShortDto author = findUser(userId);
         Comment comment = findComment(commentId);
@@ -97,6 +100,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentDto adminUpdate(Long id, UpdateCommentDto updateCommentDto) {
 
         Comment comment = findComment(id);

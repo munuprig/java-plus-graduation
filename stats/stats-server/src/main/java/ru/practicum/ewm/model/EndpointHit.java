@@ -3,13 +3,11 @@ package ru.practicum.ewm.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@ToString
 @Entity
 @Table(name = "endpoint_hits")
 public class EndpointHit {

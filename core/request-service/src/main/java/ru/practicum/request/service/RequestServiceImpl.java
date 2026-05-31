@@ -7,12 +7,13 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.*;
 import ru.practicum.feign.UserFeign;
 import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.request.exception.*;
-import ru.practicum.request.feign.event.EventFeign;
+import ru.practicum.feign.EventFeign;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.repository.RequestRepository;
@@ -44,6 +45,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
         UserShortDto user = findUser(userId);
         if (findEventByIdAndUserId(eventId, userId).isPresent()) {
@@ -94,6 +96,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
         findUser(userId);
         Request cancelRequest = requestRepository.findByIdAndRequesterId(requestId, userId)
@@ -122,6 +125,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public EventRequestStatusUpdateResult updateStatusRequest(Long userId, Long eventId,
                                                               EventRequestStatusUpdateRequest eventRequest) {
         findUser(userId);

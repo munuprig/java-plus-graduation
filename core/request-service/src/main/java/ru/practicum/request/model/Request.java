@@ -4,7 +4,6 @@ package ru.practicum.request.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import ru.practicum.dto.RequestStatus;
 
 import java.time.LocalDateTime;
@@ -13,7 +12,6 @@ import java.time.LocalDateTime;
 @Table(name = "requests")
 @Getter
 @Setter
-@ToString
 public class Request {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

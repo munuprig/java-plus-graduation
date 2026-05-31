@@ -1,6 +1,8 @@
 package ru.practicum.request.exception;
 
-public class ValidationException extends RuntimeException {
+import ru.practicum.exception.BadRequestException;
+
+public class ValidationException extends BadRequestException {
 
     public ValidationException(String message) {
         super(message);
