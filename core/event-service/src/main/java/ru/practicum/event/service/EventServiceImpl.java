@@ -101,65 +101,25 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventFullDto> getAllEvents(AdminEventParams params) {
+        Pageable pageable = PageRequest.of(params.getFrom(), params.getSize());
 
-        int from = params.getFrom() == null ? 0 : params.getFrom();
-        int size = params.getSize() == null ? 10 : params.getSize();
-
-        if (size <= 0) {
-            size = 10;
-        }
-        if (from < 0) {
-            from = 0;
+        if (params.getRangeStart() == null || params.getRangeEnd() == null) {
+            params.setRangeStart(LocalDateTime.now());
+            params.setRangeEnd(LocalDateTime.now().plusYears(1));
         }
 
-        // OFFSET pagination FIX
-        int page = from / size;
-        Pageable pageable = PageRequest.of(page, size);
+        List<Event> events = eventRepository.findAdminEvents(
+                params.getUsers(),
+                params.getStates(),
+                params.getCategories(),
+                params.getRangeStart(),
+                params.getRangeEnd(),
+                pageable);
+        log.info("Найденные события: {}", events);
 
-        // DEFAULT RANGE (если не передан)
-        LocalDateTime start = params.getRangeStart();
-        LocalDateTime end = params.getRangeEnd();
-
-        if (start == null && end == null) {
-            start = LocalDateTime.now().minusYears(10);
-            end = LocalDateTime.now().plusYears(10);
-        } else if (start == null) {
-            start = LocalDateTime.now().minusYears(10);
-        } else if (end == null) {
-            end = LocalDateTime.now().plusYears(10);
-        }
-
-        List<Event> events = Optional.ofNullable(
-                eventRepository.findAdminEvents(
-                        params.getUsers(),
-                        params.getStates(),
-                        params.getCategories(),
-                        start,
-                        end,
-                        pageable
-                )
-        ).orElse(Collections.emptyList());
-
-        List<Event> safeEvents = events.stream()
-                .filter(Objects::nonNull)
-                .toList();
-
-        List<EventFullDto> dtos = eventMapper.toEventFullDtos(safeEvents);
-
-        if (dtos == null) {
-            return Collections.emptyList();
-        }
-
-        List<EventFullDto> safeDtos = dtos.stream()
-                .filter(Objects::nonNull)
-                .toList();
-
-        safeDtos = addCategoriesDto(safeDtos, safeEvents);
-        addUserShortDto(safeDtos, safeEvents);
-
-        safeDtos = addRequests(addViews(safeDtos));
-
-        return safeDtos;
+        List<EventFullDto> eventFullDtos = addCategoriesDto(eventMapper.toEventFullDtos(events), events);
+        addUserShortDto(eventFullDtos, events);
+        return addRequests(addViews(eventFullDtos));
     }
 
     @Override
