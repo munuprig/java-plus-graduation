@@ -33,16 +33,20 @@ public class PublicEventController {
     private final RestStatClient statClient;
 
     @GetMapping
-    public List<EventShortDto> publicGetAllEvents(@RequestParam(required = false) String text,
-                                                  @RequestParam(required = false) List<Long> categories,
-                                                  @RequestParam(required = false) Boolean paid,
-                                                  @RequestParam(required = false) @DateTimeFormat(pattern = FORMAT_DATETIME) LocalDateTime rangeStart,
-                                                  @RequestParam(required = false) @DateTimeFormat(pattern = FORMAT_DATETIME) LocalDateTime rangeEnd,
-                                                  @RequestParam(defaultValue = "false") Boolean onlyAvailable,
-                                                  @RequestParam(required = false) EventSort sort,
-                                                  @RequestParam(defaultValue = "0") int from,
-                                                  @RequestParam(defaultValue = "10") int size,
-                                                  HttpServletRequest request) {
+    public List<EventShortDto> publicGetAllEvents(
+            @RequestParam(required = false) String text,
+            @RequestParam(required = false) List<Long> categories,
+            @RequestParam(required = false) Boolean paid,
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = FORMAT_DATETIME) LocalDateTime rangeStart,
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = FORMAT_DATETIME) LocalDateTime rangeEnd,
+            @RequestParam(defaultValue = "false") Boolean onlyAvailable,
+            @RequestParam(required = false) EventSort sort,
+            @RequestParam(defaultValue = "0") int from,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request
+    ) {
         ReqParam reqParam = ReqParam.builder()
                 .text(text)
                 .categories(categories)
@@ -54,9 +58,13 @@ public class PublicEventController {
                 .from(from)
                 .size(size)
                 .build();
-        log.info("Публичный запрос на поиск событий по параметрам: {}", reqParam);
+
+        log.info("Публичный запрос на поиск событий: {}", reqParam);
+
         List<EventShortDto> events = eventService.getAllEvents(reqParam);
+
         hit(request);
+
         return events;
     }
 
