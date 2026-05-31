@@ -10,12 +10,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.dto.NewCategoryDto;
-import ru.practicum.exception.CategoryNotFoundException;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.model.CategoryMapper;
 import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.dto.CategoryDto;
 import ru.practicum.dto.EventFullDto;
+import ru.practicum.exception.CategoryNotFoundException;
 import ru.practicum.feign.EventFeign;
 
 import java.util.ArrayList;
