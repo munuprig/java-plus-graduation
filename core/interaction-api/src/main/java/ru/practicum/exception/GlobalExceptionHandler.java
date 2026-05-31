@@ -156,6 +156,16 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        log.error("409 CONFLICT: {}", e.getMessage(), e);
+        return apiError(
+                HttpStatus.CONFLICT,
+                e.getMessage()
+        );
+    }
+
     // =========================
     // 500
     // =========================
