@@ -48,89 +48,55 @@ public class EventServiceImpl implements EventService {
     private final RequestFeign requestFeign;
     private final CommentRepository commentRepository;
 
+    @Override
     public List<EventShortDto> getAllEvents(ReqParam reqParam) {
+        Pageable pageable = PageRequest.of(reqParam.getFrom(), reqParam.getSize());
 
-        // 1. ВАЛИДАЦИЯ ДАТ (КРИТИЧНО ДЛЯ ТЕСТОВ)
-        if (reqParam.getRangeStart() != null && reqParam.getRangeEnd() != null) {
-            if (reqParam.getRangeStart().isAfter(reqParam.getRangeEnd())) {
-                throw new ValidationException("rangeStart must be before rangeEnd");
-            }
+        if (reqParam.getRangeStart() == null || reqParam.getRangeEnd() == null) {
+            reqParam.setRangeStart(LocalDateTime.now());
+            reqParam.setRangeEnd(LocalDateTime.now().plusYears(1));
         }
 
-        // 2. DEFAULT диапазон ТОЛЬКО ЕСЛИ NULL (НЕ ПЕРЕЗАТИРАЕМ ВХОДНЫЕ ДАННЫЕ)
-        LocalDateTime start = reqParam.getRangeStart();
-        LocalDateTime end = reqParam.getRangeEnd();
-
-        if (start == null) {
-            start = LocalDateTime.now();
-        }
-        if (end == null) {
-            end = LocalDateTime.now().plusYears(1);
-        }
-
-        // 3. ПРАВИЛЬНАЯ ПАГИНАЦИЯ (from = offset)
-        Pageable pageable = PageRequest.of(reqParam.getFrom() / reqParam.getSize(), reqParam.getSize());
-
-        // 4. ЗАПРОС В БД
         List<Event> events = eventRepository.findEvents(
                 reqParam.getText(),
                 reqParam.getCategories(),
                 reqParam.getPaid(),
-                start,
-                end,
+                reqParam.getRangeStart(),
+                reqParam.getRangeEnd(),
                 reqParam.getOnlyAvailable(),
                 pageable
         );
-
-        // 5. НЕ ДЕЛАЕМ 500 НА ПУСТОМ РЕЗУЛЬТАТЕ
+        log.info("Найденные события: {}", events);
         if (events.isEmpty()) {
-            return Collections.emptyList();
+            throw new ValidationException(ReqParam.class, " События не найдены");
         }
 
-        // 6. МАППИНГ
-        List<EventFullDto> eventFullDtos =
-                addCategoriesDto(eventMapper.toEventFullDtos(events), events);
-
+        List<EventFullDto> eventFullDtos = addCategoriesDto(eventMapper.toEventFullDtos(events), events);
         addUserShortDto(eventFullDtos, events);
 
-        // 7. COMMENTS COUNT
-        List<Long> eventsIds = eventFullDtos.stream()
-                .map(EventFullDto::getId)
-                .toList();
+        List<Long> eventsIds = eventFullDtos.stream().map(EventFullDto::getId).toList();
+        List<EventCommentCount> eventCommentCountList = commentRepository.findAllByEventIds(eventsIds);
 
-        List<EventCommentCount> commentCounts =
-                commentRepository.findAllByEventIds(eventsIds);
-
-        eventFullDtos.forEach(dto ->
-                dto.setCommentsCount(
-                        commentCounts.stream()
-                                .filter(c -> c.getEventId().equals(dto.getId()))
-                                .map(EventCommentCount::getCommentCount)
-                                .findFirst()
-                                .orElse(0L)
+        eventFullDtos.forEach(eventFullDto ->
+                eventFullDto.setCommentsCount(eventCommentCountList.stream()
+                        .filter(eventComment -> eventComment.getEventId().equals(eventFullDto.getId()))
+                        .map(EventCommentCount::getCommentCount)
+                        .findFirst()
+                        .orElse(0L)
                 )
         );
 
-        // 8. VIEWS + REQUESTS
-        List<EventShortDto> result =
-                eventMapper.toEventShortDtos(addRequests(addViews(eventFullDtos)));
+        List<EventShortDto> addedViewsAndRequests = eventMapper.toEventShortDtos(addRequests(addViews(eventFullDtos)));
 
-        // 9. SORT
         if (reqParam.getSort() != null) {
             return switch (reqParam.getSort()) {
                 case EVENT_DATE ->
-                        result.stream()
-                                .sorted(Comparator.comparing(EventShortDto::getEventDate))
-                                .toList();
-
+                        addedViewsAndRequests.stream().sorted(Comparator.comparing(EventShortDto::getEventDate)).toList();
                 case VIEWS ->
-                        result.stream()
-                                .sorted(Comparator.comparing(EventShortDto::getViews))
-                                .toList();
+                        addedViewsAndRequests.stream().sorted(Comparator.comparing(EventShortDto::getViews)).toList();
             };
         }
-
-        return result;
+        return addedViewsAndRequests;
     }
 
     @Override
