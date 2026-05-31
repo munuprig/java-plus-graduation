@@ -52,7 +52,7 @@ public class RequestServiceImpl implements RequestService {
             throw new InitiatorRequestException("Пользователь с ID - " + userId + ", является создателем события с ID - " + eventId);
         }
         if (requestRepository.findByRequesterIdAndEventId(userId, eventId).isPresent()) {
-            throw new ru.practicum.exception.RepeatUserRequestorException("Пользователь с ID - " + userId + ", уже заявился на событие с ID - " + eventId + ".");
+            throw new RepeatUserRequestorException("Пользователь с ID - " + userId + ", уже заявился на событие с ID - " + eventId + ".");
         }
         EventFullDto event = findEventById(eventId);
         if (!event.getState().equals(EventState.PUBLISHED.name())) {

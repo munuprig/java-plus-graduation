@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
     // =========================
     // 400 - Validation (Bean Validation)
     // =========================
-    @ExceptionHandler(ConstraintViolationException.class)
+    @ExceptionHandler({ConstraintViolationException.class, ValidationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse handleConstraintViolation(ConstraintViolationException e) {
 
@@ -36,6 +36,17 @@ public class GlobalExceptionHandler {
         log.error("ConstraintViolationException: {}", e.getMessage(), e);
 
         return new ValidationErrorResponse(violations);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleValidationException(ValidationException e) {
+        return new ApiError(
+                "BAD_REQUEST",
+                "validation error",
+                e.getMessage(),
+                LocalDateTime.now().toString()
+        );
     }
 
     // =========================
