@@ -32,13 +32,27 @@ public class AdminEventController {
             @RequestParam(required = false) List<Long> users,
             @RequestParam(required = false) List<String> states,
             @RequestParam(required = false) List<Long> categories,
-            @RequestParam(required = false) @DateTimeFormat(pattern = FORMAT_DATETIME) LocalDateTime rangeStart,
-            @RequestParam(required = false) @DateTimeFormat(pattern = FORMAT_DATETIME) LocalDateTime rangeEnd,
-            @RequestParam(defaultValue = "0") int from,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = FORMAT_DATETIME)
+            LocalDateTime rangeStart,
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = FORMAT_DATETIME)
+            LocalDateTime rangeEnd,
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "10") Integer size
+    ) {
 
-        AdminEventParams adminEventParams = new AdminEventParams(users, states, categories, rangeStart, rangeEnd, from, size);
-        return eventService.getAllEvents(adminEventParams);
+        AdminEventParams params = new AdminEventParams(
+                users,
+                states,
+                categories,
+                rangeStart,
+                rangeEnd,
+                from,
+                size
+        );
+
+        return eventService.getAllEvents(params);
     }
 
     @GetMapping("/check/category")

@@ -1,13 +1,12 @@
 package ru.practicum.event.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class AdminEventParams {
@@ -16,6 +15,6 @@ public class AdminEventParams {
     private List<Long> categories;
     private LocalDateTime rangeStart;
     private LocalDateTime rangeEnd;
-    private int from;
-    private int size;
+    private Integer from;
+    private Integer size;
 }
