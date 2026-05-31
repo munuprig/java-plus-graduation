@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
     // =========================
     // 400 - Validation (Bean Validation)
     // =========================
-    @ExceptionHandler({ConstraintViolationException.class, ValidationException.class})
+    @ExceptionHandler({ConstraintViolationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse handleConstraintViolation(ConstraintViolationException e) {
 
