@@ -9,4 +9,5 @@ public class ValidationViolation {
 
     private final String fieldName;
     private final String message;
+
 }

@@ -10,4 +10,5 @@ import java.util.List;
 public class ValidationErrorResponse {
 
     private final List<ValidationViolation> validationViolations;
+
 }
