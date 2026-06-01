@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.client.AnalyzerClient;
 import ru.practicum.client.CollectorClient;
 import ru.practicum.comment.repository.CommentRepository;
@@ -31,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static ru.practicum.dto.Constants.FORMAT_DATETIME;
 
@@ -139,6 +141,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto create(Long userId, NewEventDto newEventDto) {
         LocalDateTime eventDate = LocalDateTime.parse(newEventDto.getEventDate(),
                 DateTimeFormatter.ofPattern(FORMAT_DATETIME));
@@ -173,6 +176,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto update(Long eventId, UpdateEventAdminRequest updateEventAdminRequest) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException(Event.class, " c ID = " + eventId + ", не найдено."));
@@ -253,6 +257,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest updateRequest) {
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new EntityNotFoundException(Event.class, "Событие не найдено"));
@@ -308,21 +313,29 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventFullDto> getRecommendations(Long userId, Integer maxResults) {
         List<Long> ids = analyzerClient.getRecommendations(userId, maxResults).stream()
-                .sorted((a, b) -> (int) (a.getScore() - b.getScore()))
-                .map(RecommendedEventProto::getEventId).toList();
+                .sorted(Comparator.comparingDouble(RecommendedEventProto::getScore).reversed())
+                .map(RecommendedEventProto::getEventId)
+                .toList();
+
         List<Event> events = eventRepository.findAllById(ids);
+
+        Map<Long, Integer> orderMap = IntStream.range(0, ids.size())
+                .boxed()
+                .collect(Collectors.toMap(ids::get, Function.identity()));
+
+        events.sort(Comparator.comparingInt(event -> orderMap.get(event.getId())));
+
         List<EventFullDto> eventDtos = eventMapper.toEventFullDtos(events);
         addCategoriesDto(eventDtos, events);
         addUserShortDto(eventDtos, events);
         addRequests(eventDtos);
         addRating(eventDtos);
+
         log.info("Рекомендации пользователю: {}", eventDtos);
         return eventDtos;
     }
 
-
-
-
+    @Transactional
     private void checkEvent(Event event, UpdateEventBaseRequest updateRequest) {
         if (updateRequest.getAnnotation() != null && !updateRequest.getAnnotation().isBlank()) {
             event.setAnnotation(updateRequest.getAnnotation());

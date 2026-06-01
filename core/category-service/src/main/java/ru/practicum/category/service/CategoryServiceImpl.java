@@ -8,6 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.dto.NewCategoryDto;
 import ru.practicum.category.exception.CategoryNotFoundException;
 import ru.practicum.feign.EventFeign;
@@ -75,6 +76,7 @@ public class CategoryServiceImpl implements CategoryService {
         return result;
     }
 
+    @Transactional
     public CategoryDto createCategory(NewCategoryDto newCategoryDto) {
         Category category = categoryMapper.toCategoryByNew(newCategoryDto);
         log.info("Результат маппинга: {}", category);
@@ -102,6 +104,7 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.deleteById(id);
     }
 
+    @Transactional
     public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException("Категория с ID - " + id + ", не найдена."));
