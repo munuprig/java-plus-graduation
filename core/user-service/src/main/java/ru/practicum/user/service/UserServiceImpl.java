@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.UserDto;
 import ru.practicum.dto.UserShortDto;
 import ru.practicum.user.exception.UserNotFoundException;
@@ -39,7 +38,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @Transactional
     public UserDto create(UserDto userDto) {
         return userMapper.toUserDto(userRepository.save(userMapper.toUser(userDto)));
     }
