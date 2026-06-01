@@ -3,7 +3,6 @@ package ru.practicum.event.repository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.dto.EventState;
 import ru.practicum.event.model.Event;
@@ -41,14 +40,12 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             AND (:categories IS NULL OR e.categoryId IN :categories)
             AND e.eventDate BETWEEN :rangeStart AND :rangeEnd
             """)
-    List<Event> findAdminEvents(
-            @Param("users") List<Long> users,
-            @Param("states") List<String> states,
-            @Param("categories") List<Long> categories,
-            @Param("rangeStart") LocalDateTime rangeStart,
-            @Param("rangeEnd") LocalDateTime rangeEnd,
-            Pageable pageable
-    );
+    List<Event> findAdminEvents(List<Long> users,
+                                List<String> states,
+                                List<Long> categories,
+                                LocalDateTime rangeStart,
+                                LocalDateTime rangeEnd,
+                                Pageable pageable);
 
     Optional<Event> findByIdAndInitiatorId(Long eventId, Long initiatorId);
 

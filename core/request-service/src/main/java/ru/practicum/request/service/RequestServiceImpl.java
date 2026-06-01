@@ -1,19 +1,16 @@
 package ru.practicum.request.service;
 
-
-
-
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.*;
-import ru.practicum.feign.UserFeign;
 import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.request.dto.EventRequestStatusUpdateResult;
-import ru.practicum.feign.EventFeign;
 import ru.practicum.request.exception.*;
+import ru.practicum.feign.EventFeign;
+import ru.practicum.feign.UserFeign;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.repository.RequestRepository;
